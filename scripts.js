@@ -33,13 +33,8 @@ function updateMarkerStatus(show, isMarkerFound = false) {
     if (isPlaying) return;
 
     if (show) {
-        if (isMarkerFound) {
-            markerStatus.innerText = "マーカーを検出中...";
-            markerStatus.style.color = "green";
-        } else {
-            markerStatus.innerText = "マーカーが見つかりません";
-            markerStatus.style.color = "red";
-        }
+        markerStatus.innerText = isMarkerFound ? "マーカーを検出中..." : "マーカーが見つかりません";
+        markerStatus.style.color = isMarkerFound ? "green" : "red";
         markerStatus.style.display = "block";
     } else {
         markerStatus.style.display = "none";
@@ -52,10 +47,9 @@ function showPopupGif(gifPathsArray) {
 
     isPlaying = true;
     currentGifIndex = 0;
-    const gif = popupGif;
 
     function playGif(index) {
-        gif.src = gifPathsArray[index];
+        popupGif.src = gifPathsArray[index];
         tapHint.style.display = 'block';
     }
 
@@ -63,20 +57,18 @@ function showPopupGif(gifPathsArray) {
     gifPopup.style.display = 'none';
     markerBoundary.style.display = 'none';
 
-    gif.onload = () => {
+    popupGif.onload = () => {
         loadingCircle.style.display = 'none';
         gifPopup.style.display = 'block';
     };
 
-    gif.onerror = () => {
-        setTimeout(() => {
-            playGif(currentGifIndex);
-        }, 500);
+    popupGif.onerror = () => {
+        setTimeout(() => playGif(currentGifIndex), 500);
     };
 
     playGif(currentGifIndex);
 
-    gif.addEventListener('click', () => {
+    popupGif.addEventListener('click', () => {
         currentGifIndex = (currentGifIndex + 1) % gifPathsArray.length;
         playGif(currentGifIndex);
     });
@@ -98,26 +90,16 @@ document.querySelectorAll('a-marker').forEach(marker => {
 
         const markerId = marker.id;
         if (gifPaths[markerId]) {
-            setTimeout(() => {
-                showPopupGif(gifPaths[markerId]);
-            }, 1000);
+            setTimeout(() => showPopupGif(gifPaths[markerId]), 1000);
         }
     });
 
     marker.addEventListener('markerLost', () => {
-        if (!isPlaying) {
-            markerBoundary.style.display = 'block';
-            updateMarkerStatus(true, false);
-        }
+        if (!isPlaying) updateMarkerStatus(true, false);
     });
 });
 
 // GIFを事前に読み込む
 window.addEventListener('load', () => {
-    Object.values(gifPaths).forEach(paths => {
-        paths.forEach(path => {
-            const img = new Image();
-            img.src = path;
-        });
-    });
+    Object.values(gifPaths).forEach(paths => paths.forEach(path => new Image().src = path));
 });
